@@ -10,9 +10,9 @@ contract DeployFundMe is Script{
 
     function deployFundMe() public returns (FundMe, HelperConfig) {
     HelperConfig helperConfig = new HelperConfig();
-    address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
+    address priceFeed = helperConfig.getConfigByChainId(block.chainid).priceFeed;
     vm.startBroadcast();
-    FundMe fundMe = new FundMe(ethUsdPriceFeed);
+    FundMe fundMe = new FundMe(priceFeed);
     vm.stopBroadcast();
     return (fundMe, helperConfig);
     }

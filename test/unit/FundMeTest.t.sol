@@ -3,10 +3,13 @@
 pragma solidity ^0.8.18;
 
 import {Test} from "forge-std/Test.sol";
+import {StdCheats} from "forge-std/StdCheats.sol";
 import {FundMe} from "../../src/FundMe.sol";
 import {DeployFundMe, HelperConfig} from "../../script/DeployFundMe.s.sol";
+import {ZkSyncChainChecker} from "lib/foundry-devops/src/ZkSyncChainChecker.sol";
+import {FoundryZkSyncChecker} from "lib/foundry-devops/src/FoundryZkSyncChecker.sol";
 
-contract FundMeTest is Test{
+contract FundMeTest is ZkSyncChainChecker, StdCheats, Test{
      FundMe public fundMe;
      HelperConfig public helperConfig;
 
@@ -21,31 +24,31 @@ contract FundMeTest is Test{
         vm.deal(USER, STARTING_BALANCE);
     }
 
-    function testMinimumDollarIsFive() public view{
+    function testMinimumDollarIsFive() public skipZkSync{
         assertEq(fundMe.MINIMUM_USD(), 5e18);
     }
 
-    function testOwnerIsMsgSender() public view{
+    function testOwnerIsMsgSender() public skipZkSync{
         assertEq(fundMe.getOwner(), msg.sender);
     }
 
-    function testVersionIsCorrect() public view{
+    function testVersionIsCorrect() public skipZkSync{
         assertEq(fundMe.getVersion(), 4);
     }
 
-    function testFundMeFailsWithoutEnoughEth() public {
+    function testFundMeFailsWithoutEnoughEth() public skipZkSync{
         vm.expectRevert();
         fundMe.fund();
     }
 
-    function testFundUpdateFundedDataStructure() public {
+    function testFundUpdateFundedDataStructure() public skipZkSync{
         vm.prank(USER);
         fundMe.fund{value: SEND_VALUE}();
         uint256 amountFunded = fundMe.getAmountFunded(USER);
         assertEq(amountFunded, SEND_VALUE);
     }
 
-     function testAddsFunderToArrayOfFunders() public {
+     function testAddsFunderToArrayOfFunders() public skipZkSync{
         vm.startPrank(USER);
         fundMe.fund{value: SEND_VALUE}();
         vm.stopPrank();
@@ -61,13 +64,13 @@ contract FundMeTest is Test{
         _;
     }
 
-    function testOnlyOwnerCanWithdraw() public funded {
+    function testOnlyOwnerCanWithdraw() public funded skipZkSync{
         vm.expectRevert();
         vm.prank(address(3));
         fundMe.withdraw();
     }
 
-    function testWithdrawFromASingleFunder() public funded {
+    function testWithdrawFromASingleFunder() public funded skipZkSync{
         uint256 startingFundMeBalance = address(fundMe).balance;
         uint256 startingOwnerBalance = fundMe.getOwner().balance;
 
@@ -82,7 +85,7 @@ contract FundMeTest is Test{
         assertEq(startingFundMeBalance + startingOwnerBalance, endingOwnerBalance);
     }
 
-    function testWithdrawFromMultipleFunders() public funded{
+    function testWithdrawFromMultipleFunders() public funded skipZkSync{
         uint160 numberOfFunders = 10;
         uint160 startingFunderIndex = 2;
         for (uint160 i = startingFunderIndex; i < numberOfFunders + startingFunderIndex; i++) {

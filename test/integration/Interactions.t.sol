@@ -32,9 +32,9 @@ contract InteractionsTest is ZkSyncChainChecker, StdCheats, Test {
         }
         vm.deal(USER, STARTING_BALANCE);
     }
-    
 
-     function testUserCanFundAndOwnerWithdraw() public {
+
+     function testUserCanFundAndOwnerWithdraw() public skipZkSync{
         uint256 preUserBalance = address(USER).balance;
         uint256 preOwnerBalance = address(fundMe.getOwner()).balance;
 
